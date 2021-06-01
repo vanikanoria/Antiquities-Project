@@ -107,6 +107,7 @@ data1$cid = data1$`Colgate cat. no.`
 data1$culture<-factor(data1$culture)
 data1$medium<-factor(data1$medium)
 data1$Ohio<-factor(data1$Ohio)
+data1$centred_year<-as.numeric(data1$centred_year)
 
 mem8<-lmer(lav~culture+medium+size+poly(centred_year,2)+Ohio+(1|cid),data1)
 summary(mem8)
@@ -119,8 +120,9 @@ g1<-ggplot()+
 #look at outlier(residual<-0.2)
 View(data1[abs(data1$residuals_mem8)>0.2,]) 
 
+#interpreting the variable centred_year
 library(emmeans)
-emtrends(mem8,~1,var="centred_year",
+trends_overall<-emtrends(mem8,~1,var="centred_year",
          at=list(centred_year=c(20)))
 test(emtrends(mem8,~1,var="centred_year"))
 summary(mem8)
@@ -131,6 +133,79 @@ summary(mem8)
 #ask Prof. Marlowe if she has questions about particular years
 #look at coefficient estimates of summary(mem8)
 #then interaction terms: does time etc affect things differently
+
+#calculating number of years to go over in for loop
+year_range = data1%>% summarize(range=max(centred_year) - min(centred_year))
+
+for (i in 0:as.numeric(year_range)){
+  print(emtrends(mem8,~1,var="centred_year",
+           at=list(centred_year=c(i))))
+}
+  
+#manually copied marginal effects by year (1985 to 2020) to an excel workbook (marginaleffects.xlsx)
+marginaleffects<-read_excel("/Users/vani/Desktop/Art analysis/marginaleffects.xlsx")
+
+#Plotting marginal effects:
+# Points and path
+ggplot(data = marginaleffects,aes(x=Years, y=centred_year.trend))+
+  geom_point()+
+  theme_bw()                    + #removes grey background 
+  geom_hline(yintercept=0)+
+  #scale_x_continuous(breaks=seq(1985,2020,by=1))+
+  #scale_y_continuous(breaks=seq(0,30000,by=5000))+
+  ggtitle("Marginal effects of years")+geom_path()+
+  xlab("Year")  + #x axis label
+  ylab("Marginal effects") +
+  theme(axis.text.x = element_text(angle = 90))
+
+#calculating %change by year but taking exp(marginaleffect)
+marginaleffects$percent_change<-exp(marginaleffects$centred_year.trend)
+
+#Plotting %change:
+# Points and path
+ggplot(data = marginaleffects,aes(x=Years, y=percent_change))+
+  geom_point()+
+  theme_bw()                    + #removes grey background 
+  #geom_hline(yintercept=0)+
+  #scale_x_continuous(breaks=seq(1985,2020,by=1))+
+  scale_y_continuous()+
+  ggtitle("Percentage change in average valuations as a result of year")+geom_path()+
+  xlab("Year")  + #x axis label
+  ylab("% change") +
+  theme(axis.text.x = element_text(angle = 90))
+
+#This is better:
+library(ggeffects)
+meff.plot<-ggeffect(model=mem8, c("centred_year [1:35]"))
+plot(meff.plot)
+data.frame(meff.plot)
+
+meff.plot2<-ggeffect(model=mem8, c("centred_year [1:35]", "Ohio"))
+plot(meff.plot2)
+data.frame(meff.plot2)
+
+meff.plot3<-ggeffect(model=mem8, c("centred_year [1:35]", "culture"))
+plot(meff.plot3)
+data.frame(meff.plot3)
+
+meff.plot4<-ggeffect(model=mem8, c("centred_year [1:35]", "culture","Ohio"))
+plot(meff.plot4)
+data.frame(meff.plot4)
+
+meff.plot5<-ggeffect(model=mem8, c("centred_year [1:35]", "size"))
+plot(meff.plot5)
+data.frame(meff.plot5)
+
+meff.plot6<-ggeffect(model=mem8, c("centred_year [1:35]", "size", "Ohio"))
+plot(meff.plot6)
+data.frame(meff.plot6)
+
+meff.plot7<-ggeffect(model=mem8, c("centred_year [1:35]", "medium"))
+plot(meff.plot7)
+data.frame(meff.plot7)
+
+
+#It should be 0:35? or 1:36?
 
 #try interaction terms
 #year:size
