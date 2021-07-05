@@ -179,6 +179,8 @@ meff.plot<-ggeffect(model=mem8, c("centred_year [1:35]"))
 plot(meff.plot)
 dfmeff<-data.frame(meff.plot)
 dfmeff$'predicted appraisal value'<-exp(dfmeff$predicted)
+dfmeff$low<-exp(dfmeff$conf.low)
+dfmeff$high<-exp(dfmeff$conf.high)
 dfmeff$year<-dfmeff$x+1985
 ggplot(data=dfmeff,aes(x=year,y=`predicted appraisal value`))+geom_line()+
   theme_bw()                    + #removes grey background 
@@ -187,12 +189,24 @@ ggplot(data=dfmeff,aes(x=year,y=`predicted appraisal value`))+geom_line()+
   scale_y_continuous()+
   ggtitle("Percentage change in average valuations as a result of year")+
   xlab("Year")  + #x axis label
-  ylab("% change") +
-  theme(axis.text.x = element_text(angle = 90))
+  ylab("Predicted appraisal value (in $)") +
+  theme(axis.text.x = element_text(angle = 90))+
+  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2,fill='grey')
 
 meff.plot2<-ggeffect(model=mem8, c("centred_year [1:35]", "Ohio"))
 plot(meff.plot2)
-data.frame(meff.plot2)
+dfmeff<-data.frame(meff.plot2)
+dfmeff$'predicted appraisal value'<-exp(dfmeff$predicted)
+dfmeff$year<-dfmeff$x+1985
+ggplot(data=dfmeff,aes(x=year,y=`predicted appraisal value`))+geom_line()+
+  theme_bw()                    + #removes grey background 
+  #geom_hline(yintercept=0)+
+  scale_x_continuous(breaks=seq(1985,2020,by=2))+
+  scale_y_continuous()+
+  ggtitle("Percentage change in average valuations as a result of year")+
+  xlab("Year")  + #x axis label
+  ylab("Predicted appraisal value (in $)") +
+  theme(axis.text.x = element_text(angle = 90))
 
 meff.plot3<-ggeffect(model=mem8, c("centred_year [1:35]", "culture"))
 plot(meff.plot3)

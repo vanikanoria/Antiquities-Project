@@ -39,6 +39,8 @@ clean_file_with_extras<-clean_file_with_extras%>%rename(size=`size (in inches)`)
 data1<-clean_file_with_extras%>%drop_na(`appraised value`)%>%drop_na(size)
 #fix the data error:
 data1[496,'appraised value']<-32500
+#changing medimu from black fig to ceramic
+data1[data1$medium=="black fig","medium"]<-"ceramic"
 #Changing type of variables to factor variables
 data1$lav = log(data1$`appraised value`)
 data1$cid = data1$`Colgate cat. no.` 
@@ -104,31 +106,73 @@ ggplot(data = marginaleffects,aes(x=Years, y=percent_change*100))+
   theme(axis.text.x = element_text(angle = 90))
 
 #(ii) interpretation: ggeffects: predictions
-meff.plot<-ggeffect(model=mem8, c("centred_year [1:35]"))
+meff.plot<-ggeffect(model=mem8, c("centred_year [0:35]"))
 
-plot(meff.plot)
+plot(meff.plot)+ labs(
+    x = "year", 
+    y = "log(Appraised Value)", 
+    title = "Predicted values of log(Appraised Value)")+
+  scale_x_continuous(breaks = seq(0,35,5),labels=c('1985','1990',
+  '1995','2000','2005','2010','2015','2020'))
+
 data.frame(meff.plot)
 
-meff.plot2<-ggeffect(model=mem8, c("centred_year [1:35]", "Ohio"))
-plot(meff.plot2)
+meff.plot2<-ggeffect(model=mem8, c("centred_year [0:35]", "Ohio"))
+plot(meff.plot2)+labs(
+  x = "year", 
+  y = "log(Appraised Value)", 
+  title = "Predicted values of log(Appraised Value)",
+  subtitle = "segregated by whether or not the item went to Ohio")+
+  scale_x_continuous(breaks = seq(0,35,5),labels=c('1985','1990',
+                                                   '1995','2000','2005','2010','2015','2020'))
 data.frame(meff.plot2)
 
 meff.plot3<-ggeffect(model=mem8, c("centred_year [1:35]", "culture"))
-plot(meff.plot3)
+plot(meff.plot3)+labs(
+  x = "year", 
+  y = "log(Appraised Value)", 
+  title = "Predicted values of log(Appraised Value)",
+  subtitle = "segregated by culture")+
+  scale_x_continuous(breaks = seq(0,35,5),labels=c('1985','1990',
+                                                   '1995','2000','2005','2010','2015','2020'))
 data.frame(meff.plot3)
 
-meff.plot4<-ggeffect(model=mem8, c("centred_year [1:35]", "culture","Ohio"))
-plot(meff.plot4)
+meff.plot4<-ggeffect(model=mem8, c("centred_year [0:35]", "culture","Ohio"))
+plot(meff.plot4)+labs(
+  x = "year", 
+  y = "log(Appraised Value)", 
+  title = "Predicted values of log(Appraised Value)",
+  subtitle = "segregated by culture and whether they went to Ohio")+
+  scale_x_continuous(breaks = seq(0,30,10),labels=c('1985',
+                                                   '1995','2005','2015'))
 data.frame(meff.plot4)
 
 meff.plot5<-ggeffect(model=mem8, c("centred_year [1:35]", "size"))
-plot(meff.plot5)
+plot(meff.plot5)+labs(
+  x = "year", 
+  y = "log(Appraised Value)", 
+  title = "Predicted values of log(Appraised Value) of antiquities",
+  subtitle = "segregated by approximate size of item")+
+  scale_x_continuous(breaks = seq(0,35,5),labels=c('1985','1990',
+                                                   '1995','2000','2005','2010','2015','2020'))
 data.frame(meff.plot5)
 
 meff.plot6<-ggeffect(model=mem8, c("centred_year [1:35]", "size", "Ohio"))
-plot(meff.plot6)
+plot(meff.plot6)+labs(
+  x = "year", 
+  y = "log(Appraised Value)", 
+  title = "Predicted values of log(Appraised Value) of antiquities",
+  subtitle = "segregated by approximate size of item and whether they went to Ohio")+
+  scale_x_continuous(breaks = seq(0,35,5),labels=c('1985','1990',
+                                                   '1995','2000','2005','2010','2015','2020'))
 data.frame(meff.plot6)
 
 meff.plot7<-ggeffect(model=mem8, c("centred_year [1:35]", "medium"))
-plot(meff.plot7)
+plot(meff.plot7)+labs(
+  x = "year", 
+  y = "log(Appraised Value)", 
+  title = "Predicted values of log(Appraised Value) of antiquities",
+  subtitle = "segregated by medium")+
+  scale_x_continuous(breaks = seq(0,35,5),labels=c('1985','1990',
+                                                   '1995','2000','2005','2010','2015','2020'))
 data.frame(meff.plot7)
