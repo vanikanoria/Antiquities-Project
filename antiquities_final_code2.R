@@ -41,6 +41,11 @@ clean_file_with_extras<-clean_file_with_extras%>%rename(size=`size (in inches)`)
 #NOTE: R should auto-drop when necessary
 data1 <- clean_file_with_extras
 
+data1 <- data1 %>% 
+  mutate(culture = case_when((culture=="Sardinian")|(culture=="Etruscan") ~ "Italian",
+                             (culture=="Parthian")|(culture=="Luristan") ~ "Near Eastern",
+                             TRUE ~ "Other"))
+
 ####################################
 ### Fix data entry errors
 ####################################
@@ -60,7 +65,6 @@ data1$medium<-factor(data1$medium)
 data1$Ohio<-factor(data1$Ohio)
 data1$centred_year<-as.numeric(data1$centred_year)
 
-
 gaps<-data1%>%filter(is.na(`appraised value`)==FALSE)
 ggplot(data=data1, aes(x=year, y=`appraised value`, group=`Colgate cat. no.`,
                        color=factor(`Colgate cat. no.`)), show.legend=F)+
@@ -73,7 +77,6 @@ ggplot(data=data1, aes(x=year, y=`appraised value`, group=`Colgate cat. no.`,
           subtitle = "Over 1985-2020") +
   geom_line(data = gaps,aes(linetype = "Missing Data")) + guides(color=FALSE)+
   scale_linetype_manual("", values =c(1,3))
-
 ############################################################################
 ### Fit Mixed Effects Model
 ############################################################################
@@ -87,13 +90,15 @@ ggplot(data=data1, aes(x=year, y=`appraised value`, group=`Colgate cat. no.`,
 ###       random intercept on id
 ####################################
 mod<-lmer(lav~culture+medium+size+poly(centred_year,2)+Ohio+(1|cid),data1)
+#mod<-lmer(lav~medium+size+culture*poly(centred_year,2)+Ohio+(1|cid),data1)
 mod.sum<-summary(mod)
 library(MuMIn)
 r.squaredGLMM(mod)
 
+
 df<-mod.sum$coefficients
 df<-cbind(rownames(df),df)
-write_csv(path = "mod1-all.csv", x = data.frame(df))
+write_csv(path = "mod1-sub.csv", x = data.frame(df))
 
 ############################################################################
 ### Check Model Assumptions
@@ -106,7 +111,7 @@ dat.mod$residuals<-rstudent(mod)
 dat.mod$fitted<-fitted(mod)
 
 #plot residuals
-g1<-ggplot()+
+ggplot()+
   geom_point(data=dat.mod,aes(x=fitted,y=residuals))+
   #geom_point(data=dat.mod,aes(x=fitted,y=residuals,color=factor(cid)), show.legend = F)+
   xlab("Fitted")+
